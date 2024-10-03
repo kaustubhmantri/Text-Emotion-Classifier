@@ -3,6 +3,7 @@ from data_processing import load_data, preprocess_texts, encode_labels
 from model import build_model, train_model
 from predict import predict_emotion
 import os
+from keras.models import load_model
 
 # Set the page configuration
 st.set_page_config(
@@ -143,13 +144,18 @@ label_encoder, one_hot_labels = encode_labels(labels)
 from sklearn.model_selection import train_test_split
 xtrain, xtest, ytrain, ytest = train_test_split(padded_sequences, one_hot_labels, test_size=0.2)
 
-# Build and train the model
+# Build the model
 model = build_model(input_dim=len(tokenizer.word_index) + 1, max_length=max_length, num_classes=len(one_hot_labels[0]))
-if os.path.exists('emotion_model.h5'):
-    model.load_weights('emotion_model.h5')
+
+# Check if the model exists
+if os.path.exists('emotion_model.keras'):
+    # Load the entire model if it exists
+    model = load_model('emotion_model.keras')
 else:
+    # Train the model if it doesn't exist
     train_model(model, xtrain, ytrain, xtest, ytest)
-    model.save('emotion_model.h5')
+    # Save the model architecture and weights together
+    model.save('emotion_model.keras')
 
 # Input text for prediction
 input_text = st.text_input("Enter text to predict emotion:")
